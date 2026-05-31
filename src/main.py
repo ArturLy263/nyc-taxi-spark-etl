@@ -39,14 +39,12 @@ def main():
 
     print("Initial row count:", df.count())
 
-    # Cleaning
     df = remove_invalid_distances(df)
     df = remove_invalid_fares(df)
     df = remove_invalid_passengers(df)
     df = remove_invalid_datetimes(df)
     df = remove_negative_trip_duration(df)
 
-    # Feature engineering
     df = add_trip_duration(df)
     df = remove_unrealistic_trip_duration(df)
     df = add_time_of_day(df)
@@ -54,7 +52,6 @@ def main():
     df = add_tip_percentage(df)
     df = add_payment_type_label(df)
 
-    # Additional columns
     df = df.withColumn(
         "pickup_hour",
         F.hour("tpep_pickup_datetime")
@@ -65,7 +62,6 @@ def main():
         F.to_date("tpep_pickup_datetime")
     )
 
-    # Analysis
     hourly_summary = calculate_hourly_summary(df)
     payment_summary = calculate_payment_summary(df)
     top_locations = calculate_top_revenue_locations(df)
