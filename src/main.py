@@ -1,3 +1,5 @@
+import argparse
+
 from src.utils.spark_session import create_spark_session
 from src.extract.reader import read_taxi_data
 
@@ -25,17 +27,23 @@ from src.analysis.revenue_analysis import (
 )
 
 from src.analysis.peak_hours import calculate_peak_hours
+from src.load.writer import write_parquet
 
 from pyspark.sql import functions as F
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="NYC Yellow Taxi Spark ETL")
+    parser.add_argument("--input", default="data/raw/yellow_tripdata_2019-01.parquet")
+    parser.add_argument("--output", default="data/processed")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     spark = create_spark_session()
 
-    df = read_taxi_data(
-        spark,
-        "data/raw/yellow_tripdata_2019-01.csv"
-    )
+    df = read_taxi_data(spark, args.input)
 
     print("Initial row count:", df.count())
 
@@ -78,6 +86,13 @@ def main():
 
     print("\nPeak Hours:")
     peak_hours.show()
+
+    write_parquet(df, f"{args.output}/trips", partition_cols=["pickup_date"])
+    write_parquet(hourly_summary, f"{args.output}/hourly_summary")
+    write_parquet(payment_summary, f"{args.output}/payment_summary")
+    write_parquet(top_locations, f"{args.output}/top_revenue_locations")
+    write_parquet(peak_hours, f"{args.output}/peak_hours")
+    print(f"\nParquet outputs written to {args.output}/")
 
     spark.stop()
 

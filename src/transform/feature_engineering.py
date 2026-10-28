@@ -4,11 +4,13 @@ from pyspark.sql.functions import col
 
 
 def add_trip_duration(df: DataFrame) -> DataFrame:
+    # Casting to "timestamp" first also handles TIMESTAMP_NTZ columns,
+    # which Spark may use for Parquet files and which cannot be cast to long.
     return df.withColumn(
         "trip_duration_minutes",
         (
-            col("tpep_dropoff_datetime").cast("long") -
-            col("tpep_pickup_datetime").cast("long")
+            col("tpep_dropoff_datetime").cast("timestamp").cast("long") -
+            col("tpep_pickup_datetime").cast("timestamp").cast("long")
         ) / 60
     )
 
@@ -67,24 +69,14 @@ def add_tip_percentage(df: DataFrame) -> DataFrame:
         ).otherwise(0)
     )
 
-def add_payment_type_label(df):
-
+def add_payment_type_label(df: DataFrame) -> DataFrame:
     return df.withColumn(
-
         "payment_type_label",
-
         F.when(F.col("payment_type") == 1, "Credit Card")
-
-         .when(F.col("payment_type") == 2, "Cash")
-
-         .when(F.col("payment_type") == 3, "No Charge")
-
-         .when(F.col("payment_type") == 4, "Dispute")
-
-         .when(F.col("payment_type") == 5, "Unknown")
-
-         .when(F.col("payment_type") == 6, "Voided Trip")
-
-         .otherwise("Other")
-
+        .when(F.col("payment_type") == 2, "Cash")
+        .when(F.col("payment_type") == 3, "No Charge")
+        .when(F.col("payment_type") == 4, "Dispute")
+        .when(F.col("payment_type") == 5, "Unknown")
+        .when(F.col("payment_type") == 6, "Voided Trip")
+        .otherwise("Other"),
     )
