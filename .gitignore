@@ -1,6 +1,19 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 .venv/
-.DS_Store
+
+# Data (raw inputs are downloaded, outputs are generated)
 data/raw/
+data/processed/
+
+# Spark local artifacts
+spark-warehouse/
+metastore_db/
+derby.log
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
