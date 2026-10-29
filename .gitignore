@@ -17,3 +17,6 @@ derby.log
 .DS_Store
 .idea/
 .vscode/
+
+# Output of the sample run in the README
+output/

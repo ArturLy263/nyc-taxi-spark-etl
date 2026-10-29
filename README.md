@@ -68,9 +68,16 @@ source .venv/bin/activate
 pip install -r requirements-dev.txt     # requirements.txt alone is enough to run the pipeline
 
 python -m pytest tests -q
+
+# try the pipeline on 18 synthetic trips, no download needed
+python -m src.main --input examples/sample_trips.csv --output output
 ```
 
-Download **Yellow Taxi Trip Records, January 2019** (`yellow_tripdata_2019-01.parquet`) from the
+[`examples/sample_trips.csv`](examples/sample_trips.csv) is hand-written, not TLC data: 18 trips in
+the TLC column layout, 6 of them invalid on purpose, so `output/trips` gets 12 rows in two
+`pickup_date` folders.
+
+To process real data, download **Yellow Taxi Trip Records, January 2019** (`yellow_tripdata_2019-01.parquet`) from the
 [TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) page into
 `data/raw/`, then:
 
@@ -87,7 +94,7 @@ The tests build small DataFrames in memory and check the cleaning rules, derived
 time-of-day boundaries, payment labels, the peak-hour window, Parquet and CSV reading, timestamp
 handling for Parquet `TIMESTAMP_NTZ` columns, and that the writer produces one folder per
 `pickup_date`. An end-to-end test (`tests/test_pipeline.py`) runs the whole pipeline on a
-six-trip synthetic Parquet file and checks every output table. GitHub Actions runs the tests on
+six-trip synthetic Parquet file and on `examples/sample_trips.csv`, and checks the output tables. GitHub Actions runs the tests on
 Python 3.12 and 3.14.
 
 Results from a full-month run are not stored in this repository.
@@ -101,3 +108,4 @@ published by the NYC Taxi and Limousine Commission. Raw data is not committed to
 
 - Read input with an explicit schema instead of relying on the file's own types.
 - Log row counts after each cleaning step, so data loss is visible.
+- Remove duplicate trips: TLC records have no trip ID, so exact duplicate rows are currently kept.
