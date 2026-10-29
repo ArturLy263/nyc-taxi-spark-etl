@@ -55,7 +55,9 @@ src/
 ├── analysis/peak_hours.py
 ├── load/writer.py                # Parquet writer with optional partitioning
 └── utils/spark_session.py
-tests/                            # pytest tests on small in-memory DataFrames
+orchestration/                    # Airflow DAG (demo), see orchestration/README.md
+examples/sample_trips.csv         # 18 synthetic trips
+tests/                            # pytest tests on small synthetic data
 ```
 
 ## Run it
@@ -87,6 +89,12 @@ python -m src.main --input data/raw/yellow_tripdata_2019-01.parquet --output dat
 
 Any other month works the same way with `--input`. The reader also accepts CSV files with a header.
 Run Spark from the activated virtual environment, so its workers use the same Python version.
+
+## Airflow (demo)
+
+[`orchestration/`](orchestration/README.md) contains an Airflow 3 DAG that runs this pipeline as
+three tasks — check input, run ETL, validate output — with retries, XCom metadata and one output
+folder per logical date. CI runs it end to end on the sample data with `airflow dags test`.
 
 ## Testing
 
