@@ -86,7 +86,9 @@ Run Spark from the activated virtual environment, so its workers use the same Py
 The tests build small DataFrames in memory and check the cleaning rules, derived columns,
 time-of-day boundaries, payment labels, the peak-hour window, Parquet and CSV reading, timestamp
 handling for Parquet `TIMESTAMP_NTZ` columns, and that the writer produces one folder per
-`pickup_date`. GitHub Actions runs them on Python 3.12 and 3.14.
+`pickup_date`. An end-to-end test (`tests/test_pipeline.py`) runs the whole pipeline on a
+six-trip synthetic Parquet file and checks every output table. GitHub Actions runs the tests on
+Python 3.12 and 3.14.
 
 Results from a full-month run are not stored in this repository.
 
