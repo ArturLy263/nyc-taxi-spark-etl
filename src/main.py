@@ -32,18 +32,16 @@ from src.load.writer import write_parquet
 from pyspark.sql import functions as F
 
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="NYC Yellow Taxi Spark ETL")
     parser.add_argument("--input", default="data/raw/yellow_tripdata_2019-01.parquet")
     parser.add_argument("--output", default="data/processed")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main():
-    args = parse_args()
-    spark = create_spark_session()
-
-    df = read_taxi_data(spark, args.input)
+def run(spark, input_path, output_path):
+    """Run the whole pipeline: read, clean, enrich, analyse and write Parquet."""
+    df = read_taxi_data(spark, input_path)
 
     print("Initial row count:", df.count())
 
@@ -87,13 +85,18 @@ def main():
     print("\nPeak Hours:")
     peak_hours.show()
 
-    write_parquet(df, f"{args.output}/trips", partition_cols=["pickup_date"])
-    write_parquet(hourly_summary, f"{args.output}/hourly_summary")
-    write_parquet(payment_summary, f"{args.output}/payment_summary")
-    write_parquet(top_locations, f"{args.output}/top_revenue_locations")
-    write_parquet(peak_hours, f"{args.output}/peak_hours")
-    print(f"\nParquet outputs written to {args.output}/")
+    write_parquet(df, f"{output_path}/trips", partition_cols=["pickup_date"])
+    write_parquet(hourly_summary, f"{output_path}/hourly_summary")
+    write_parquet(payment_summary, f"{output_path}/payment_summary")
+    write_parquet(top_locations, f"{output_path}/top_revenue_locations")
+    write_parquet(peak_hours, f"{output_path}/peak_hours")
+    print(f"\nParquet outputs written to {output_path}/")
 
+
+def main(argv=None):
+    args = parse_args(argv)
+    spark = create_spark_session()
+    run(spark, args.input, args.output)
     spark.stop()
 
 
