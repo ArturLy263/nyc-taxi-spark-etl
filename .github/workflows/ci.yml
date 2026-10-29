@@ -37,3 +37,37 @@ jobs:
         env:
           PYSPARK_PYTHON: python
         run: python -m pytest tests -q
+
+  airflow:
+    # Runs the DAG end to end on the sample data with `airflow dags test`
+    # (no scheduler or webserver), plus the DAG structure test.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AIRFLOW_HOME: ${{ github.workspace }}/.airflow
+      AIRFLOW__CORE__DAGS_FOLDER: ${{ github.workspace }}/orchestration/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      PYTHONPATH: ${{ github.workspace }}
+      PYSPARK_PYTHON: python
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Airflow with its constraints
+        run: >
+          python -m pip install -r requirements-airflow.txt
+          --constraint https://raw.githubusercontent.com/apache/airflow/constraints-3.2.1/constraints-3.12.txt
+      - name: Run tests, including the DAG structure test
+        run: python -m pytest tests -q -rs
+      - name: Run the DAG on the sample data
+        run: |
+          airflow db migrate
+          airflow dags test nyc_taxi_etl 2019-01-01
+          test -d output/airflow/run_date=2019-01-01/trips/pickup_date=2019-01-02

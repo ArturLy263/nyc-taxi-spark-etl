@@ -20,3 +20,6 @@ derby.log
 
 # Output of the sample run in the README
 output/
+
+# Local Airflow home for the orchestration demo
+.airflow/
