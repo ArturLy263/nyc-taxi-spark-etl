@@ -1,0 +1,2 @@
+-r requirements-dev.txt
+apache-airflow==3.2.1
