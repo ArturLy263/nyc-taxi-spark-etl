@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 from src.main import run
 from tests.test_transforms import COLUMNS, trip
@@ -37,3 +38,16 @@ def test_pipeline_end_to_end_on_small_parquet(spark, tmp_path):
 
     peaks = {(str(r["pickup_date"]), r["pickup_hour"]) for r in spark.read.parquet(str(out / "peak_hours")).collect()}
     assert peaks == {("2019-01-01", 8), ("2019-01-02", 9)}
+
+
+def test_pipeline_on_the_committed_csv_sample(spark, tmp_path):
+    # examples/sample_trips.csv: 18 synthetic trips, 6 of them invalid (dropoff before
+    # pickup, no passengers, zero distance, fare over 500, 270-minute trip, no dropoff).
+    sample = Path(__file__).resolve().parent.parent / "examples" / "sample_trips.csv"
+    out = tmp_path / "processed"
+
+    run(spark, str(sample), str(out))
+
+    assert spark.read.parquet(str(out / "trips")).count() == 12
+    peaks = {(str(r["pickup_date"]), r["pickup_hour"], r["count"]) for r in spark.read.parquet(str(out / "peak_hours")).collect()}
+    assert peaks == {("2019-01-01", 8, 3), ("2019-01-02", 8, 2)}
